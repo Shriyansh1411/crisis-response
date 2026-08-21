@@ -20,6 +20,13 @@
   align-items: center;
   justify-content: center;
 }
+#replan-panel.pick-mode,
+#replan-panel.pick-mode .replan-modal {
+  pointer-events: none;
+}
+body:has(#replan-panel.pick-mode) .map-overlay {
+  pointer-events: none;
+}
 .replan-modal {
   background: var(--bg-card);
   border: 1px solid var(--border-bright);

@@ -13,6 +13,7 @@ const INC_ICONS   = { fire: '🔥', medical: '🚑', accident: '💥', flood: '�
 const UNIT_COLORS = { ambulance: '#10b981', fire: '#f03c3c', police: '#3b82f6' };
 const OBS_ICONS   = { road_blocked: '🚧', traffic_jam: '🚦', bridge_closed: '🌉', flood_water: '🌊', unit_breakdown: '🔧', hostile_crowd: '⚠️' };
 const OBS_LABELS  = { road_blocked: 'Road Blocked', traffic_jam: 'Traffic Jam', bridge_closed: 'Bridge Closed', flood_water: 'Road Flooded', unit_breakdown: 'Unit Breakdown', hostile_crowd: 'Hostile Crowd' };
+let pinHandler = null;
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 export function initMap() {
@@ -143,16 +144,21 @@ export function clearObstructionMarker(key) { if (obstructionMarkers[key]) { map
 export function panTo(lat, lng) { map.panTo([lat, lng]); }
 
 export function enablePinMode(callback) {
-  map.getContainer().style.cursor = 'crosshair';
-  map.once('click', e => {
-    map.getContainer().style.cursor = '';
+  disablePinMode();
+  pinHandler = e => {
+    disablePinMode();
     callback(e.latlng.lat, e.latlng.lng);
-  });
+  };
+  map.getContainer().style.cursor = 'crosshair';
+  map.getPane('markerPane').style.pointerEvents = 'none';
+  map.on('click', pinHandler);
 }
 
 export function disablePinMode() {
+  if (pinHandler) map.off('click', pinHandler);
+  pinHandler = null;
   map.getContainer().style.cursor = '';
-  map.off('click');
+  map.getPane('markerPane').style.pointerEvents = '';
 }
 
 // ── Util ──────────────────────────────────────────────────────────────────────

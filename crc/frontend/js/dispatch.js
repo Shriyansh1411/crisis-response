@@ -19,6 +19,7 @@ export let units         = [];
 export let resolvedCount = 0;
 let idCounter = 1;
 let obsPinActive = false;
+const OBS_PREVIEW_KEY = 'obs-preview';
 
 // ── Seed units (used when backend is offline) ──────────────────────────────────
 const SEED_UNITS = [
@@ -289,22 +290,26 @@ export function openReplanPanel(incidentId) {
   el('rp-description').value       = '';
   el('rp-geocode-result').style.display = 'none';
   el('obs-pin-hint').classList.remove('visible');
+  clearObstructionMarker(OBS_PREVIEW_KEY);
   el('replan-panel').style.display = 'flex';
 }
 
 export function closeReplanPanel() {
   document.getElementById('replan-panel').style.display = 'none';
   if (obsPinActive) _cancelObsPin();
+  clearObstructionMarker(OBS_PREVIEW_KEY);
 }
 
 // ── Obstruction pin mode ──────────────────────────────────────────────────────
 export function startObsPin() {
   obsPinActive = true;
+  document.getElementById('replan-panel').classList.add('pick-mode');
   document.getElementById('obs-pin-btn').classList.add('active');
   document.getElementById('obs-pin-hint').classList.add('visible');
   enablePinMode((lat, lng) => {
     document.getElementById('rp-obs-lat').value = lat.toFixed(5);
     document.getElementById('rp-obs-lng').value = lng.toFixed(5);
+    placeObstructionMarker(OBS_PREVIEW_KEY, lat, lng, document.getElementById('rp-obs-type').value);
     const res = document.getElementById('rp-geocode-result');
     res.textContent = `📍 Obstruction pinned: (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
     res.style.display = 'block';
@@ -314,6 +319,7 @@ export function startObsPin() {
 
 function _cancelObsPin() {
   obsPinActive = false;
+  document.getElementById('replan-panel').classList.remove('pick-mode');
   const btn = document.getElementById('obs-pin-btn');
   if (btn) btn.classList.remove('active');
   const hint = document.getElementById('obs-pin-hint');
@@ -343,6 +349,7 @@ export async function submitObstruction() {
   };
 
   closeReplanPanel();
+  clearObstructionMarker(OBS_PREVIEW_KEY);
   await _executeReplan(payload);
 }
 

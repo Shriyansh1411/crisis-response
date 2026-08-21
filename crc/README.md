@@ -128,10 +128,9 @@ The AI endpoint is `POST /incidents/analyze`:
 
 ---
 
-## 👥 Team — QuadCoders
+## 👥 Team — Diva Coders
 
 - Hritika Chawla
-- Ria Mehta  
 - Kritika Madan
 - Shriyansh Mishra
 
