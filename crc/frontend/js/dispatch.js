@@ -417,8 +417,12 @@ async function _localReplan(payload) {
 
   // Unit breakdown → reassign to another unit
   if (payload.obstruction_type === 'unit_breakdown') {
-    const avail = units.filter(u => u.status === 'available' && u.id !== unit.id);
-    if (!avail.length) return { success: false, reason: 'No replacement units available' };
+    const avail = units.filter(u =>
+      u.status === 'available' && u.id !== unit.id && u.type === unit.type
+    );
+    if (!avail.length) {
+      return { success: false, reason: `No available ${unit.type} replacement units` };
+    }
 
     const replacement = avail.sort((a,b) =>
       _hav(a.lat,a.lng,inc.lat,inc.lng) - _hav(b.lat,b.lng,inc.lat,inc.lng)

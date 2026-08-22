@@ -159,6 +159,7 @@ class ReplanningAgent:
         available = [
             u for u in all_units
             if u.status == "available" and u.id != failed_unit.id
+            and u.type == failed_unit.type
         ]
 
         if not available:
@@ -167,15 +168,12 @@ class ReplanningAgent:
                 trigger=ReplanTrigger.UNIT_UNAVAILABLE,
                 incident_id=incident.id,
                 old_unit_id=failed_unit.id,
-                reason=f"{failed_unit.id} unavailable and NO replacement units free.",
-                warnings=["CRITICAL: No units available for reassignment"],
+                reason=f"{failed_unit.id} unavailable and no {failed_unit.type} replacement units are free.",
+                warnings=[f"CRITICAL: No available {failed_unit.type} units for reassignment"],
             )
 
-        # Prefer same type, then nearest
-        same_type = [u for u in available if u.type == failed_unit.type]
-        pool = same_type if same_type else available
         replacement = min(
-            pool,
+            available,
             key=lambda u: _haversine(u.lat, u.lng, incident.lat, incident.lng),
         )
         dist = _haversine(replacement.lat, replacement.lng, incident.lat, incident.lng)
@@ -186,10 +184,6 @@ class ReplanningAgent:
             f"Reassigning to {replacement.id} "
             f"({dist:.1f} km away, ETA ~{eta:.0f} min)."
         )
-        warns = [] if same_type else [
-            f"No {failed_unit.type} units available — using {replacement.type} unit {replacement.id}"
-        ]
-
         return ReplanResult(
             success=True,
             trigger=ReplanTrigger.UNIT_UNAVAILABLE,
@@ -199,7 +193,7 @@ class ReplanningAgent:
             new_eta_min=eta,
             new_dist_km=dist,
             reason=reason,
-            warnings=warns,
+            warnings=[],
         )
 
     # ── Trigger 3: priority bump ───────────────────────────────────────────────
